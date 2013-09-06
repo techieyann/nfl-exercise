@@ -10,6 +10,8 @@ var requestHandlers = require('./requestHandlers');
 var handle = {};
 handle['/'] = requestHandlers.index;
 handle['/index'] = requestHandlers.index;
+handle['/teams'] = requestHandlers.teams;
+handle['/players'] = requestHandlers.players;
 handle['/favicon.ico'] = requestHandlers.favicon;
 
 var port = 8080;

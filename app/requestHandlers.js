@@ -5,12 +5,22 @@
 
 var fs = require('fs');
 
-function hello(response){
-	console.log('"hello" request handler called');
+function index(response){
+	console.log('"index" request handler called');
 
-	response.writeHead(200, {'Content-Type': 'text/plain'});
-	response.write('hello world!');
-	response.end();
+	fs.readFile('./index.html', 'binary', function(err, file){
+		if(err)
+		{
+			response.writeHead(500, {'Content-Type': 'text/plain'});
+			response.write(err);
+			response.end();
+			return;
+		}
+
+		response.writeHead(200, {'Content-Type': 'text/html'});
+		response.write(file, 'binary');
+		response.end();
+	});
 }
 
 function favicon(response){
@@ -23,5 +33,5 @@ function favicon(response){
 	response.end();
 }
 
-exports.hello = hello;
+exports.index = index;
 exports.favicon = favicon;

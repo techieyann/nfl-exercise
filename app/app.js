@@ -8,7 +8,8 @@ var router = require('./router');
 var requestHandlers = require('./requestHandlers');
 
 var handle = {};
-handle['/hello'] = requestHandlers.hello;
+handle['/'] = requestHandlers.index;
+handle['/index'] = requestHandlers.index;
 handle['/favicon.ico'] = requestHandlers.favicon;
 
 var port = 8080;

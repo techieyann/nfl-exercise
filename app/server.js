@@ -8,21 +8,17 @@ This is a node app for displaying and filtering sample NFL data
 var http = require('http');
 var url = require('url');
 
-function start(route){
-	function onRequest(req, res){
-		var pathname = url.parse(req.url).pathname;
+function start(route, handle, port){
+	function onRequest(request, response){
+		var pathname = url.parse(request.url).pathname;
 		console.log('requested '+ pathname);
 
-		route(pathname);
-
-		res.writeHead(200, {'Content-Type': 'text/plain'});
-		res.write('hello world!');
-		res.end();
+		route(handle, pathname, response);
 	}
 
-	http.createServer(onRequest).listen(8080);
+	http.createServer(onRequest).listen(port);
 
-	console.log('Server running on port 8080');
+	console.log('Server running on port '+port);
 }
 
 exports.start = start;

@@ -6,12 +6,20 @@ This is a node app for displaying and filtering sample NFL data
  */
 
 var http = require('http');
+var url = require('url');
 
-var server = http.createServer(function(req, res){
-	res.writeHead(200, {"Content-Type": "text/plain"});
-	res.end("hello world!");
-});
+function start(){
+	function onRequest(req, res){
+		var requestedPath = url.parse(req.url).pathname;
+		console.log('requested '+requestedPath);
+		res.writeHead(200, {'Content-Type': 'text/plain'});
+		res.write('hello world!');
+		res.end();
+	}
 
-server.listen(8080);
+	http.createServer(onRequest).listen(8080);
 
-console.log("Server running on port 8080");
+	console.log('Server running on port 8080');
+}
+
+exports.start = start;

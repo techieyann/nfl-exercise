@@ -26,6 +26,16 @@ function javascript(response){
 	loadFile('./bootstrap.js', 'application/javascript', response);
 }
 
+function favicon(response){
+	console.log('"favicon" request handler called');
+
+//source of favicon: http://images.fantasypros.com/images/experts/16x16/dlf.png
+	var image = fs.readFileSync('./favicon.ico');
+	response.writeHead(200, {'Content-Type': 'image/x-icon'});
+	response.write(image, 'binary');
+	response.end();
+}
+
 function teams(requested, response){
 	console.log('"teams" request handler called');
 	var teams = require('../data/Team.2012.json');
@@ -66,7 +76,7 @@ function teams(requested, response){
 		});
 	
 	
-		writeHeader(response, 'Node.js NFL -- Teams');
+		writeHeader(response, 'Teams');
 		response.write('<h1>Teams</h1>');
 		var currentConference = null;
 		var currentDivision = null;
@@ -122,42 +132,73 @@ function players(requested, response){
 		});
 
 	
-		writeHeader(response, 'Node.js NFL -- Players');
+		writeHeader(response, 'Players');
 		response.write('<h1>Players</h1>');
 		for(i=0; i<players.length; i++)
 		{
-			response.write('<h3>'+players[i].FirstName+' '+players[i].LastName+'</h3>');
+			writePlayer(response, players[i], 'mini');
 		}
-		writeFooter(response);
+
 	}
+	else
+	{
+		var player = null;
+		for(i=0; i<players.length; i++)
+		{
+			if(players[i].PlayerID == requested)
+			{
+				player = players[i];
+				break;
+			}
+		}
+		if(player != null)
+		{
+			var fullName = player.FirstName+' '+player.LastName;
+			writeHeader(response, fullName);
+			writePlayer(response, player, 'full');
+		}
+		else
+		{
+			writeHeader(response, 'error');
+			response.write('<h2>Player not found..</h2>');
+		}
+
+	}
+	writeFooter(response);	
 }
 
-function favicon(response){
-	console.log('"favicon" request handler called');
 
-//source of favicon: http://images.fantasypros.com/images/experts/16x16/dlf.png
-	var image = fs.readFileSync('./favicon.ico');
-	response.writeHead(200, {'Content-Type': 'image/x-icon'});
-	response.write(image, 'binary');
-	response.end();
-}
 
 
 
 exports.index = index;
 exports.css = css;
 exports.javascript = javascript;
+exports.favicon = favicon;
 exports.teams = teams;
 exports.players = players;
-exports.favicon = favicon;
+
 
 function writeHeader(response, title)
 {
 	response.writeHead(200, {'Content-Type': 'text/html'});
-	response.write('<doctype HTML><html><head><title>'+title+'</title>');
+	response.write('<doctype HTML><html><head><title>Node.js NFL -- '+title+'</title>');
 	response.write('<link href="bootstrap.css" rel="stylesheet" type="text/css">');
 	response.write('<script src="bootstrap.js"></script>');
 	response.write('</head><body><a href="/">Node.js NFL</a><a href="/teams">Teams</a><a href="/players">Players</a>');
+}
+
+function writePlayer(response, player, type)
+{
+	var fullName = player.FirstName+' '+player.LastName;
+	if(type == 'full')
+	{
+		response.write('<h2>Player: '+fullName+'</h2>');
+	}
+	if(type == 'mini')
+	{
+		response.write('<p><a href="/players/'+player.PlayerID+'">'+fullName+'</a><p>');
+	}
 }
 
 function writeFooter(response)
@@ -165,6 +206,7 @@ function writeFooter(response)
 	response.write('</body></html>');
 	response.end();
 }
+
 function loadFile(filename, type, response){
 	fs.readFile(filename, 'binary', function(err, file){
 		if(err)

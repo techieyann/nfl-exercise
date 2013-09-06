@@ -8,7 +8,9 @@ var fs = require('fs');
 function index(response){
 	console.log('"index" request handler called');
 
-	loadFile('./index.html', 'text/html', response);
+	writeHeader(response, 'Node.js NFL -- Home');
+	response.write('<h1>here are some instructions</h1>');
+	writeFooter(response);
 
 }
 
@@ -27,13 +29,18 @@ function javascript(response){
 function teams(requested, response){
 	console.log('"teams" request handler called');
 
-	loadFile('./teams.html', 'text/html', response);
+	writeHeader(response, 'Node.js NFL -- Teams');
+	response.write('<h1>Teams</h1>');
+	writeFooter(response);
+
 }
 
 function players(requested, response){
 	console.log('"players" request handler called');
 
-	loadFile('./players.html', 'text/html', response);
+	writeHeader(response, 'Node.js NFL -- Players');
+	response.write('<h1>Players</h1>');
+	writeFooter(response);
 }
 
 function favicon(response){
@@ -46,6 +53,29 @@ function favicon(response){
 	response.end();
 }
 
+
+
+exports.index = index;
+exports.css = css;
+exports.javascript = javascript;
+exports.teams = teams;
+exports.players = players;
+exports.favicon = favicon;
+
+function writeHeader(response, title)
+{
+	response.writeHead(200, {'Content-Type': 'text/html'});
+	response.write('<doctype HTML><html><head><title>'+title+'</title>');
+	response.write('<link href="bootstrap.css" rel="stylesheet" type="text/css">');
+	response.write('<script src="bootstrap.js"></script>');
+	response.write('</head><body><a href="/">Node.js NFL</a><a href="/teams">Teams</a><a href="/players">Players</a>');
+}
+
+function writeFooter(response)
+{
+	response.write('</body></html>');
+	response.end();
+}
 function loadFile(filename, type, response){
 	fs.readFile(filename, 'binary', function(err, file){
 		if(err)
@@ -61,11 +91,3 @@ function loadFile(filename, type, response){
 		response.end();
 	});
 }
-
-exports.index = index;
-exports.css = css;
-exports.javascript = javascript;
-exports.teams = teams;
-exports.players = players;
-exports.favicon = favicon;
-

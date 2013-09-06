@@ -9,16 +9,29 @@ function index(response){
 	console.log('"index" request handler called');
 
 	loadFile('./index.html', 'text/html', response);
+
 }
 
-function teams(response){
-	console.log('"index" request handler called');
+function css(response){
+	console.log('"css" request handler called');
+
+	loadFile('./bootstrap.css', 'text/css', response);
+}
+
+function javascript(response){
+	console.log('"javascript" request handler called');
+
+	loadFile('./bootstrap.js', 'application/javascript', response);
+}
+
+function teams(requested, response){
+	console.log('"teams" request handler called');
 
 	loadFile('./teams.html', 'text/html', response);
 }
 
-function players(response){
-	console.log('"index" request handler called');
+function players(requested, response){
+	console.log('"players" request handler called');
 
 	loadFile('./players.html', 'text/html', response);
 }
@@ -50,6 +63,8 @@ function loadFile(filename, type, response){
 }
 
 exports.index = index;
+exports.css = css;
+exports.javascript = javascript;
 exports.teams = teams;
 exports.players = players;
 exports.favicon = favicon;

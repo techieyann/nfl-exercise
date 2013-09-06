@@ -6,9 +6,25 @@
 function route(handle, pathname, response){
 	console.log('routing request for ' + pathname);
 
-	if(typeof handle[pathname] === 'function')
+	var pathArray = pathname.split('/');
+	var path = pathArray[1];
+	var requested = null;
+	if(pathArray.length > 2)
 	{
-		handle[pathname](response);
+		requested = pathArray[2];
+	}
+
+	if(typeof handle[path] === 'function')
+	{
+		if(path == 'teams' || path == 'players')
+		{
+			handle[path](requested, response);
+		}
+		else
+		{
+			handle[path](response);
+		}
+		return;
 	}
 	else
 	{

@@ -27,29 +27,109 @@ function javascript(response){
 }
 
 function teams(requested, response){
-	var teams = require('../data/Team.2012.json');
 	console.log('"teams" request handler called');
+	var teams = require('../data/Team.2012.json');
 
-	writeHeader(response, 'Node.js NFL -- Teams');
-	response.write('<h1>Teams</h1>');
-	for(i=0; i<teams.length; i++)
+	if(requested == null)
 	{
-		response.write('<h3>'+teams[i].Name+'</h3>');
+		teams.sort(function(a,b){
+			if(a.Conference == b.Conference)
+			{
+				if(a.Division == b.Division)
+				{
+					if(a.Name < b.Name)
+					{
+						return -1;
+					}
+					if(a.Name > b.Name)
+					{
+						return 1;
+					}
+				}
+				if(a.Division < b.Division)
+				{
+					return -1;
+				}
+				if(a.Division > b.Division)
+				{
+					return 1;		
+				}
+			}
+			if(a.Conference < b.Conference)
+			{
+				return -1;
+			}
+			if(a.Conference > b.Conference)
+			{
+				return 1;
+			}
+		});
+	
+	
+		writeHeader(response, 'Node.js NFL -- Teams');
+		response.write('<h1>Teams</h1>');
+		var currentConference = null;
+		var currentDivision = null;
+		for(i=0; i<teams.length; i++)
+		{
+			var currentTeam = teams[i];
+			if(currentConference != currentTeam.Conference)
+			{
+				currentConference = currentTeam.Conference;
+				response.write('<h2>'+currentConference+'</h2>');
+			}
+			if(currentDivision != currentTeam.Division)
+			{
+				currentDivision = currentTeam.Division;
+				response.write('<h3>'+currentDivision+'</h3>');
+			}
+			response.write('<p>'+currentTeam.Name+'</p>');
+		}
+		writeFooter(response);
 	}
-	writeFooter(response);
 }
 
 function players(requested, response){
-	var players = require('../data/Player.2012.json');
 	console.log('"players" request handler called');
+	var players = require('../data/Player.2012.json');
 
-	writeHeader(response, 'Node.js NFL -- Players');
-	response.write('<h1>Players</h1>');
-	for(i=0; i<players.length; i++)
+	if(requested == null)
 	{
-		response.write('<h3>'+players[i].PlayerID+'</h3>');
+		players.sort(function(a,b){
+			if(a.FirstName == b.FirstName)
+			{
+				if(a.LastName == b.LastName)
+				{
+					return 0;
+				}
+				if(a.LastName < b.LastName)
+				{
+					return -1;
+				}
+				if(a.LastName > b.LastName)
+				{
+					return 1;
+				}			
+			}
+			if(a.FirstName < b.FirstName)
+			{
+				return -1;
+			}
+			if(a.FirstName > b.FirstName)
+			{
+				return 1;
+			}			
+		});
+
+	
+		writeHeader(response, 'Node.js NFL -- Players');
+		response.write('<h1>Players</h1>');
+		for(i=0; i<players.length; i++)
+		{
+			response.write('<h3>'+players[i].FirstName+' '+players[i].LastName+'</h3>');
+		}
+		writeFooter(response);
 	}
-	writeFooter(response);
 }
 
 function favicon(response){

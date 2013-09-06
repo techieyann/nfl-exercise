@@ -27,19 +27,28 @@ function javascript(response){
 }
 
 function teams(requested, response){
+	var teams = require('../data/Team.2012.json');
 	console.log('"teams" request handler called');
 
 	writeHeader(response, 'Node.js NFL -- Teams');
 	response.write('<h1>Teams</h1>');
+	for(i=0; i<teams.length; i++)
+	{
+		response.write('<h3>'+teams[i].Name+'</h3>');
+	}
 	writeFooter(response);
-
 }
 
 function players(requested, response){
+	var players = require('../data/Player.2012.json');
 	console.log('"players" request handler called');
 
 	writeHeader(response, 'Node.js NFL -- Players');
 	response.write('<h1>Players</h1>');
+	for(i=0; i<players.length; i++)
+	{
+		response.write('<h3>'+players[i].PlayerID+'</h3>');
+	}
 	writeFooter(response);
 }
 

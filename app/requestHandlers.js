@@ -5,6 +5,87 @@
 
 var fs = require('fs');
 
+var teamList = require('../data/Team.2012.json');
+teamList.sort(function(a,b){
+	if(a.Conference == b.Conference)
+	{
+		if(a.Division == b.Division)
+		{
+			if(a.Name < b.Name)
+			{
+				return -1;
+			}
+			if(a.Name > b.Name)
+			{
+				return 1;
+			}
+		}
+		if(a.Division < b.Division)
+		{
+			return -1;
+		}
+		if(a.Division > b.Division)
+		{
+			return 1;		
+		}
+	}
+	if(a.Conference < b.Conference)
+	{
+		return -1;
+	}
+	if(a.Conference > b.Conference)
+	{
+		return 1;
+	}
+});
+
+var playerList = require('../data/Player.2012.json');
+playerList.sort(function(a,b){
+	if(a.FirstName == b.FirstName)
+	{
+		if(a.LastName == b.LastName)
+		{
+			return 0;
+		}
+		if(a.LastName < b.LastName)
+		{
+			return -1;
+		}
+		if(a.LastName > b.LastName)
+		{
+			return 1;
+		}			
+	}
+	if(a.FirstName < b.FirstName)
+	{
+		return -1;
+	}
+	if(a.FirstName > b.FirstName)
+	{
+		return 1;
+	}			
+});
+
+var teamsWithPlayers = new Array();
+teamsWithPlayers.push(playerList[0].Team);
+var foundTeam = false;
+for(i=1; i<playerList.length; i++)
+{
+	for(j=0; j<teamsWithPlayers.length; j++)
+	{
+		if(playerList[i].Team == teamsWithPlayers[j])
+		{
+			foundTeam = true;
+			break;
+		}
+	}
+	if(foundTeam == false)
+	{
+		teamsWithPlayers.push(playerList[i].Team);
+	}
+	foundTeam = false;
+}
+
 function index(response){
 	console.log('"index" request handler called');
 
@@ -38,51 +119,16 @@ function favicon(response){
 
 function teams(requested, response){
 	console.log('"teams" request handler called');
-	var teams = require('../data/Team.2012.json');
 
 	if(requested == null)
 	{
-		teams.sort(function(a,b){
-			if(a.Conference == b.Conference)
-			{
-				if(a.Division == b.Division)
-				{
-					if(a.Name < b.Name)
-					{
-						return -1;
-					}
-					if(a.Name > b.Name)
-					{
-						return 1;
-					}
-				}
-				if(a.Division < b.Division)
-				{
-					return -1;
-				}
-				if(a.Division > b.Division)
-				{
-					return 1;		
-				}
-			}
-			if(a.Conference < b.Conference)
-			{
-				return -1;
-			}
-			if(a.Conference > b.Conference)
-			{
-				return 1;
-			}
-		});
-	
-	
 		writeHeader(response, 'Teams');
 		response.write('<h1>Teams</h1>');
 		var currentConference = null;
 		var currentDivision = null;
-		for(i=0; i<teams.length; i++)
+		for(i=0; i<teamList.length; i++)
 		{
-			var currentTeam = teams[i];
+			var currentTeam = teamList[i];
 			if(currentConference != currentTeam.Conference)
 			{
 				currentConference = currentTeam.Conference;
@@ -93,61 +139,70 @@ function teams(requested, response){
 				currentDivision = currentTeam.Division;
 				response.write('<h3>'+currentDivision+'</h3>');
 			}
-			response.write('<p>'+currentTeam.Name+'</p>');
+			var link = '';
+			var linkEnd = '';
+			for(j=0; j<teamsWithPlayers.length; j++)
+			{
+				if(teamsWithPlayers[j] == currentTeam.Key)
+				{
+					link = '<a href="/teams/'+currentTeam.Key+'">';	
+					linkEnd = '</a>';
+				}
+			}
+			response.write('<p>'+link+currentTeam.Name+linkEnd+'</p>');
 		}
-		writeFooter(response);
+
 	}
+	else
+	{
+		var team = null;
+		for(i=0; i<teamList.length; i++)
+		{
+			if(teamList[i].Key == requested)
+			{
+				team = teamList[i];
+				break;
+			}
+		}
+		if(team == null)
+		{
+			writeHeader(response, 'error');
+			response.write('<h2>Team not found..</h2>');			
+		}
+		else
+		{
+			writeHeader(response, team.Name);
+			response.write('<h2>Team: '+team.City+' '+team.Name+'</h2>');
+		}
+	}
+	writeFooter(response);
 }
 
 function players(requested, response){
 	console.log('"players" request handler called');
-	var players = require('../data/Player.2012.json');
+
 
 	if(requested == null)
 	{
-		players.sort(function(a,b){
-			if(a.FirstName == b.FirstName)
-			{
-				if(a.LastName == b.LastName)
-				{
-					return 0;
-				}
-				if(a.LastName < b.LastName)
-				{
-					return -1;
-				}
-				if(a.LastName > b.LastName)
-				{
-					return 1;
-				}			
-			}
-			if(a.FirstName < b.FirstName)
-			{
-				return -1;
-			}
-			if(a.FirstName > b.FirstName)
-			{
-				return 1;
-			}			
-		});
+
 
 	
 		writeHeader(response, 'Players');
 		response.write('<h1>Players</h1>');
-		for(i=0; i<players.length; i++)
+		for(i=0; i<playerList.length; i++)
 		{
-			writePlayer(response, players[i], 'mini');
+			writePlayer(response, playerList[i], 'mini');
 		}
 
 	}
 	else
 	{
 		var player = null;
-		for(i=0; i<players.length; i++)
+		for(i=0; i<playerList.length; i++)
 		{
-			if(players[i].PlayerID == requested)
+			if(playerList[i].PlayerID == requested)
 			{
-				player = players[i];
+				player = playerList[i];
 				break;
 			}
 		}
@@ -166,9 +221,6 @@ function players(requested, response){
 	}
 	writeFooter(response);	
 }
-
-
-
 
 
 exports.index = index;

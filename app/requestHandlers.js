@@ -1,10 +1,13 @@
 /*
 * file: app/requestHandlers.js
 * creator: Ian McEachern
+*
+* This is the meat of the application, writing the responses to the client.
 */
 
 var fs = require('fs');
 
+//Load and sort the team data. By conference, division, and finally name
 var teamList = require('../data/Team.2012.json');
 teamList.sort(function(a,b){
 	if(a.Conference == b.Conference)
@@ -39,6 +42,7 @@ teamList.sort(function(a,b){
 	}
 });
 
+//Load and sort the player data. By first then last name
 var playerList = require('../data/Player.2012.json');
 playerList.sort(function(a,b){
 	if(a.FirstName == b.FirstName)
@@ -66,6 +70,7 @@ playerList.sort(function(a,b){
 	}			
 });
 
+//Find the teams with player data supplied
 var teamsWithPlayers = new Array();
 teamsWithPlayers.push(playerList[0].Team);
 var foundTeam = false;
@@ -86,6 +91,7 @@ for(i=1; i<playerList.length; i++)
 	foundTeam = false;
 }
 
+//Store the full name of the found teams hashed by the acronym, for player team display
 var fullTeamName = new Array();
 for(i=0; i<teamList.length; i++)
 {
@@ -98,6 +104,7 @@ for(i=0; i<teamList.length; i++)
 	}
 }
 
+//Index handler
 function index(response){
 	console.log('"index" request handler called');
 
@@ -107,18 +114,21 @@ function index(response){
 
 }
 
+//bootstrap.css handler
 function css(response){
 	console.log('"css" request handler called');
 
 	loadFile('./bootstrap.css', 'text/css', response);
 }
 
+//bootstrap.js handler
 function javascript(response){
 	console.log('"javascript" request handler called');
 
 	loadFile('./bootstrap.js', 'application/javascript', response);
 }
 
+//favicon.ico handler
 function favicon(response){
 	console.log('"favicon" request handler called');
 
@@ -129,14 +139,19 @@ function favicon(response){
 	response.end();
 }
 
+//Teams handler
 function teams(requested, response){
 	console.log('"teams" request handler called');
+
+	//Team listing display
 	if(requested == null)
 	{
 		writeHeader(response, 'Teams');
 		response.write('<h1>Teams</h1>');
+
 		var currentConference = null;
 		var currentDivision = null;
+		//flag for tracking div closures
 		var conferenceChanged = false;
 		for(i=0; i<teamList.length; i++)
 		{
@@ -157,7 +172,7 @@ function teams(requested, response){
 				{
 					response.write('</div>');
 				}
-					conferenceChanged = false;
+				conferenceChanged = false;
 				currentDivision = currentTeam.Division;
 				response.write('<div class="span3"><h3>'+currentDivision+'</h3>');
 			}
@@ -176,6 +191,7 @@ function teams(requested, response){
 		response.write('</div></div>');
 
 	}
+	//Display active players on requested team
 	else
 	{
 		var team = null;
@@ -187,17 +203,21 @@ function teams(requested, response){
 				break;
 			}
 		}
+		//Requested team was not found!
 		if(team == null)
 		{
 			writeHeader(response, 'error');
 			response.write('<h2>Team not found..</h2>');			
 		}
+		//Team was found!
 		else
 		{
 			writeHeader(response, team.Name);
 			response.write('<h2>Team: '+team.City+' '+team.Name+'</h2>');
 			response.write('<h3>'+team.Conference+' '+team.Division+'</h3>');
 			var activePlayers = new Array();
+
+			//Find players that are active, on the appropriate team, and not 'ST'
 			for(i=0; i<playerList.length; i++)
 			{
 				if(playerList[i].Active && playerList[i].PositionCategory != 'ST' && playerList[i].Team == team.Key)
@@ -205,6 +225,8 @@ function teams(requested, response){
 					activePlayers.push(playerList[i]);
 				}
 			}
+
+			//Sort the active players by Position Category, Position, and finally Depth Order 
 			activePlayers.sort(function(a,b){
 				if(a.PositionCategory == b.PositionCategory)
 				{
@@ -238,6 +260,7 @@ function teams(requested, response){
 					return 1;
 				}
 			});
+			
 			var currentPositionCat = null;
 			response.write('<ul class="thumbnails">');
 			for(i=0; i<activePlayers.length; i++)
@@ -246,6 +269,7 @@ function teams(requested, response){
 				if(currentPositionCat != currentPlayer.PositionCategory)
 				{
 					currentPositionCat = currentPlayer.PositionCategory;
+					//translate Position Category to full english
 					var offDef = '';
 					if(currentPositionCat == 'OFF')
 					{
@@ -267,19 +291,18 @@ function teams(requested, response){
 			response.write('</ul>');
 		}
 	}
+	//Activate the team nav link
 	response.write('<script>document.getElementById("teams-nav").className += "active";</script>');
 	writeFooter(response);
 }
 
+//Players handler
 function players(requested, response){
 	console.log('"players" request handler called');
 
-
+	//No specific player requested
 	if(requested == null)
-	{
-
-
-	
+	{	
 		writeHeader(response, 'Players');
 		response.write('<h1>Players</h1><ul class="thumbnails">');
 		for(i=0; i<playerList.length; i++)
@@ -289,10 +312,11 @@ function players(requested, response){
 			response.write('</li>');
 		}
 		response.write('</ul>');
-
 	}
+	//Display requested player
 	else
 	{
+		//Search for requested player
 		var player = null;
 		for(i=0; i<playerList.length; i++)
 		{
@@ -302,12 +326,16 @@ function players(requested, response){
 				break;
 			}
 		}
+
+		//Found requested player
 		if(player != null)
 		{
 			var fullName = player.FirstName+' '+player.LastName;
 			writeHeader(response, fullName);
 			writePlayer(response, player, 'full');
 		}
+
+		//Didn't find requested player
 		else
 		{
 			writeHeader(response, 'error');
@@ -315,6 +343,7 @@ function players(requested, response){
 		}
 
 	}
+	//Activate the player nav link
 	response.write('<script>document.getElementById("players-nav").className += "active";</script>');
 	writeFooter(response);	
 }
@@ -327,45 +356,51 @@ exports.favicon = favicon;
 exports.teams = teams;
 exports.players = players;
 
-
+//Header module, with dynamic title argument
 function writeHeader(response, title)
 {
 	response.writeHead(200, {'Content-Type': 'text/html'});
 	response.write('<!DOCTYPE html><html><head><title>Node.js NFL -- '+title+'</title>');
+//css file(s)
 	response.write('<link href="/bootstrap.css" rel="stylesheet" type="text/css" media="screen">');
+//inline css
 	response.write('<style>.rounded{border-radius:5px; -moz-border-radius:5px; -webkit-border-radius:5px;} .centered{margin:auto;}</style>');
 	response.write('</head><body>');
+//navbar
 	response.write('<div class="navbar"><div class="navbar-inner"><a class="brand" href="/">Node.js NFL</a><ul class="nav pull-right"><li id="teams-nav"><a href="/teams">Teams</a></li><li id="players-nav"><a href="/players">Players</a></li></ul></div></div>');
 	response.write('<div class="container">');
 }
 
+//Player display module, both full and mini as specified by type
 function writePlayer(response, player, type)
 {
+	//Concatonate full player position
 	var position = player.Position;
 	if(player.DepthOrder != null)
 	{
 		position += player.DepthOrder;
 	}
+
 	if(type == 'full')
 	{
 		response.write('<img class="rounded pull-right" src="'+player.PhotoUrl+'">');
 		response.write('<h2>Player: '+player.Name+'</h2>');
 		response.write('<h4>'+position+' '+fullTeamName[player.Team]+'</h4>');
-
 		response.write('Height: '+player.Height+'<br>');
 		response.write('Weight: '+player.Weight+'<br>');
 		response.write('Birthdate: '+player.BirthDate+'<br>');
 		response.write('College: '+player.College+'<br>');
 	}
+
 	if(type == 'mini')
 	{
-
 		response.write('<div class="media"><img class="pull-left rounded" width="32" src="'+player.PhotoUrl+'">');
 		response.write('<div class="media-body"><a href="/players/'+player.PlayerID+'">'+player.Name+'</a><br>');
 		response.write('<div class="label">'+position+'</div> '+fullTeamName[player.Team]+'</div></div>');
 	}
 }
 
+//Footer module
 function writeFooter(response)
 {
 	response.write('<div class="text-center"><hr>Created by: Ian McEachern (<a href="https://github.com/TerraEclipse/nfl-exercise">Exercise</a> for <a href="http://terraeclipse.com">Terra Eclipse</a>)</div>');
@@ -374,6 +409,7 @@ function writeFooter(response)
 	response.end();
 }
 
+//File response module
 function loadFile(filename, type, response){
 	fs.readFile(filename, 'binary', function(err, file){
 		if(err)

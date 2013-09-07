@@ -1,9 +1,9 @@
 /**
-file: app/server.js
-creator: Ian McEachern
-
-This is a node app for displaying and filtering sample NFL data
- */
+* file: app/server.js
+* creator: Ian McEachern
+*
+* This files creates the server and sends requests to the router.
+*/
 
 var http = require('http');
 var url = require('url');

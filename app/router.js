@@ -1,11 +1,16 @@
 /*
 * file: app/router.js
 * creator: Ian McEachern
+*
+* This is the router for the server. It checks the URL path, 
+* and sends the appropriate data to the corresponding handler. 
+* Failing that it 404s.
 */
 
 function route(handle, pathname, response){
 	console.log('routing request for ' + pathname);
 
+	//Separate requested URL path into array (pathArray[0] will always be empty)
 	var pathArray = pathname.split('/');
 	var path = pathArray[1];
 	var requested = null;
@@ -14,8 +19,10 @@ function route(handle, pathname, response){
 		requested = pathArray[2];
 	}
 
+	//Check if handler is defined
 	if(typeof handle[path] === 'function')
 	{
+		//Make sure to send the extra argument to the team and player handlers
 		if(path == 'teams' || path == 'players')
 		{
 			handle[path](requested, response);
@@ -26,6 +33,7 @@ function route(handle, pathname, response){
 		}
 		return;
 	}
+	//Not defined, 404!
 	else
 	{
 		console.log('404ing request for ' + pathname);

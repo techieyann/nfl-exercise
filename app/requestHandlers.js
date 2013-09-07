@@ -149,7 +149,7 @@ function teams(requested, response){
 					linkEnd = '</a>';
 				}
 			}
-			response.write('<p>'+link+currentTeam.Name+linkEnd+'</p>');
+			response.write('<p>'+link+currentTeam.City+' '+currentTeam.Name+linkEnd+'</p>');
 		}
 
 	}
@@ -173,6 +173,68 @@ function teams(requested, response){
 		{
 			writeHeader(response, team.Name);
 			response.write('<h2>Team: '+team.City+' '+team.Name+'</h2>');
+			response.write('<h3>'+team.Conference+' '+team.Division+'</h3>');
+			var activePlayers = new Array();
+			for(i=0; i<playerList.length; i++)
+			{
+				if(playerList[i].Active && playerList[i].PositionCategory != 'ST' && playerList[i].Team == team.Key)
+				{
+					activePlayers.push(playerList[i]);
+				}
+			}
+			activePlayers.sort(function(a,b){
+				if(a.PositionCategory == b.PositionCategory)
+				{
+					if(a.Position == b.Position)
+					{
+						if(a.DepthOrder < b.DepthOrder)
+						{
+							return -1;
+						}
+						if(a.DepthOrder > b.DepthOrder)
+						{
+							return 1;
+						}
+						return 0;
+					}
+					if(a.Position < b.Position)
+					{
+						return -1;
+					}
+					if(a.Position > b.Position)
+					{
+						return 1;
+					}
+				}
+				if(a.PositionCategory > b.Position)
+				{
+					return -1;
+				}
+				if(a.PositionCategory < b.Position)
+				{
+					return 1;
+				}
+			});
+			var currentPositionCat = null;
+			for(i=0; i<activePlayers.length; i++)
+			{
+				var currentPlayer = activePlayers[i];
+				if(currentPositionCat != currentPlayer.PositionCategory)
+				{
+					currentPositionCat = currentPlayer.PositionCategory;
+					var offDef = '';
+					if(currentPositionCat == 'OFF')
+					{
+						offDef = 'Offense';
+					}
+					if(currentPositionCat == 'DEF')
+					{
+						offDef = 'Defense';
+					}
+					response.write('<h3>'+offDef+'</h3>');
+				}
+				writePlayer(response, currentPlayer, 'mini');
+			}
 		}
 	}
 	writeFooter(response);

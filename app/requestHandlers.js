@@ -86,6 +86,18 @@ for(i=1; i<playerList.length; i++)
 	foundTeam = false;
 }
 
+var fullTeamName = new Array();
+for(i=0; i<teamList.length; i++)
+{
+	for(j=0; j<teamsWithPlayers.length; j++)
+	{
+		if(teamList[i].Key == teamsWithPlayers[j])
+		{
+			fullTeamName[teamList[i].Key] = teamList[i].Name;
+		}
+	}
+}
+
 function index(response){
 	console.log('"index" request handler called');
 
@@ -304,14 +316,26 @@ function writeHeader(response, title)
 
 function writePlayer(response, player, type)
 {
-	var fullName = player.FirstName+' '+player.LastName;
+	var position = player.Position;
+	if(player.DepthOrder != null)
+	{
+		position += player.DepthOrder;
+	}
 	if(type == 'full')
 	{
-		response.write('<h2>Player: '+fullName+'</h2>');
+		response.write('<h2>Player: '+player.Name+'</h2>');
+		response.write(position+' '+fullTeamName[player.Team]+'<br>');
+		response.write('<img src="'+player.PhotoUrl+'"><br>');
+		response.write('Height: '+player.Height+'<br>');
+		response.write('Weight: '+player.Weight+'<br>');
+		response.write('Birthdate: '+player.BirthDate+'<br>');
+		response.write('College: '+player.College+'<br>');
 	}
 	if(type == 'mini')
 	{
-		response.write('<p><a href="/players/'+player.PlayerID+'">'+fullName+'</a><p>');
+		response.write('<img src="'+player.PhotoUrl+'">');
+		response.write('<p><a href="/players/'+player.PlayerID+'">'+player.Name+'</a><br>');
+		response.write(position+' '+fullTeamName[player.Team]+'</p>');
 	}
 }
 

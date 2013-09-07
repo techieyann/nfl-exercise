@@ -102,7 +102,7 @@ function index(response){
 	console.log('"index" request handler called');
 
 	writeHeader(response, 'Node.js NFL -- Home');
-	response.write('<h1>here are some instructions</h1>');
+	response.write('<div class="hero-unit"><h1>Welcome</h1><p>Enjoy browsing the <a href="/players">player</a> and <a href="/teams">team</a> data.</p></div>');
 	writeFooter(response);
 
 }
@@ -131,25 +131,35 @@ function favicon(response){
 
 function teams(requested, response){
 	console.log('"teams" request handler called');
-
 	if(requested == null)
 	{
 		writeHeader(response, 'Teams');
 		response.write('<h1>Teams</h1>');
 		var currentConference = null;
 		var currentDivision = null;
+		var conferenceChanged = false;
 		for(i=0; i<teamList.length; i++)
 		{
 			var currentTeam = teamList[i];
 			if(currentConference != currentTeam.Conference)
 			{
+				if(currentConference != null)
+				{
+					response.write('</div></div>');
+				}
+				conferenceChanged = true;
 				currentConference = currentTeam.Conference;
-				response.write('<h2>'+currentConference+'</h2>');
+				response.write('<h2>'+currentConference+'</h2><div class="row">');
 			}
 			if(currentDivision != currentTeam.Division)
 			{
+				if(currentDivision != null && !conferenceChanged)
+				{
+					response.write('</div>');
+				}
+					conferenceChanged = false;
 				currentDivision = currentTeam.Division;
-				response.write('<h3>'+currentDivision+'</h3>');
+				response.write('<div class="span3"><h3>'+currentDivision+'</h3>');
 			}
 			var link = '';
 			var linkEnd = '';
@@ -163,6 +173,7 @@ function teams(requested, response){
 			}
 			response.write('<p>'+link+currentTeam.City+' '+currentTeam.Name+linkEnd+'</p>');
 		}
+		response.write('</div></div>');
 
 	}
 	else
@@ -228,6 +239,7 @@ function teams(requested, response){
 				}
 			});
 			var currentPositionCat = null;
+			response.write('<ul class="thumbnails">');
 			for(i=0; i<activePlayers.length; i++)
 			{
 				var currentPlayer = activePlayers[i];
@@ -243,12 +255,19 @@ function teams(requested, response){
 					{
 						offDef = 'Defense';
 					}
+					response.write('</ul>');
 					response.write('<h3>'+offDef+'</h3>');
+					response.write('<ul class="thumbnails">');
+
 				}
+				response.write('<li class="span3">');
 				writePlayer(response, currentPlayer, 'mini');
+				response.write('</li>');
 			}
+			response.write('</ul>');
 		}
 	}
+	response.write('<script>document.getElementById("teams-nav").className += "active";</script>');
 	writeFooter(response);
 }
 
@@ -262,11 +281,14 @@ function players(requested, response){
 
 	
 		writeHeader(response, 'Players');
-		response.write('<h1>Players</h1>');
+		response.write('<h1>Players</h1><ul class="thumbnails">');
 		for(i=0; i<playerList.length; i++)
 		{
+			response.write('<li class="span3">');
 			writePlayer(response, playerList[i], 'mini');
+			response.write('</li>');
 		}
+		response.write('</ul>');
 
 	}
 	else
@@ -293,6 +315,7 @@ function players(requested, response){
 		}
 
 	}
+	response.write('<script>document.getElementById("players-nav").className += "active";</script>');
 	writeFooter(response);	
 }
 
@@ -308,10 +331,12 @@ exports.players = players;
 function writeHeader(response, title)
 {
 	response.writeHead(200, {'Content-Type': 'text/html'});
-	response.write('<doctype HTML><html><head><title>Node.js NFL -- '+title+'</title>');
-	response.write('<link href="bootstrap.css" rel="stylesheet" type="text/css">');
-	response.write('<script src="bootstrap.js"></script>');
-	response.write('</head><body><a href="/">Node.js NFL</a><a href="/teams">Teams</a><a href="/players">Players</a>');
+	response.write('<!DOCTYPE html><html><head><title>Node.js NFL -- '+title+'</title>');
+	response.write('<link href="/bootstrap.css" rel="stylesheet" type="text/css" media="screen">');
+	response.write('<style>.rounded{border-radius:5px; -moz-border-radius:5px; -webkit-border-radius:5px;} .centered{margin:auto;}</style>');
+	response.write('</head><body>');
+	response.write('<div class="navbar"><div class="navbar-inner"><a class="brand" href="/">Node.js NFL</a><ul class="nav pull-right"><li id="teams-nav"><a href="/teams">Teams</a></li><li id="players-nav"><a href="/players">Players</a></li></ul></div></div>');
+	response.write('<div class="container">');
 }
 
 function writePlayer(response, player, type)
@@ -323,9 +348,10 @@ function writePlayer(response, player, type)
 	}
 	if(type == 'full')
 	{
+		response.write('<img class="rounded pull-right" src="'+player.PhotoUrl+'">');
 		response.write('<h2>Player: '+player.Name+'</h2>');
-		response.write(position+' '+fullTeamName[player.Team]+'<br>');
-		response.write('<img src="'+player.PhotoUrl+'"><br>');
+		response.write('<h4>'+position+' '+fullTeamName[player.Team]+'</h4>');
+
 		response.write('Height: '+player.Height+'<br>');
 		response.write('Weight: '+player.Weight+'<br>');
 		response.write('Birthdate: '+player.BirthDate+'<br>');
@@ -333,14 +359,17 @@ function writePlayer(response, player, type)
 	}
 	if(type == 'mini')
 	{
-		response.write('<img src="'+player.PhotoUrl+'">');
-		response.write('<p><a href="/players/'+player.PlayerID+'">'+player.Name+'</a><br>');
-		response.write(position+' '+fullTeamName[player.Team]+'</p>');
+
+		response.write('<div class="media"><img class="pull-left rounded" width="32" src="'+player.PhotoUrl+'">');
+		response.write('<div class="media-body"><a href="/players/'+player.PlayerID+'">'+player.Name+'</a><br>');
+		response.write('<div class="label">'+position+'</div> '+fullTeamName[player.Team]+'</div></div>');
 	}
 }
 
 function writeFooter(response)
 {
+	response.write('<div class="text-center"><hr>Created by: Ian McEachern (<a href="https://github.com/TerraEclipse/nfl-exercise">Exercise</a> for <a href="http://terraeclipse.com">Terra Eclipse</a>)</div>');
+	response.write('</div><script src="/bootstrap.js"></script>');
 	response.write('</body></html>');
 	response.end();
 }

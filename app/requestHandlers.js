@@ -121,13 +121,6 @@ function css(response){
 	loadFile('./bootstrap.css', 'text/css', response);
 }
 
-//bootstrap.js handler
-function javascript(response){
-	console.log('"javascript" request handler called');
-
-	loadFile('./bootstrap.js', 'application/javascript', response);
-}
-
 //favicon.ico handler
 function favicon(response){
 	console.log('"favicon" request handler called');
@@ -351,7 +344,6 @@ function players(requested, response){
 
 exports.index = index;
 exports.css = css;
-exports.javascript = javascript;
 exports.favicon = favicon;
 exports.teams = teams;
 exports.players = players;
@@ -404,8 +396,7 @@ function writePlayer(response, player, type)
 function writeFooter(response)
 {
 	response.write('<div class="text-center"><hr>Created by: Ian McEachern (<a href="https://github.com/TerraEclipse/nfl-exercise">Exercise</a> for <a href="http://terraeclipse.com">Terra Eclipse</a>)</div>');
-	response.write('</div><script src="/bootstrap.js"></script>');
-	response.write('</body></html>');
+	response.write('</div></body></html>');
 	response.end();
 }
 
